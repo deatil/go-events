@@ -45,6 +45,9 @@ func (this *Action) Subscribe(subscribers ...any) *Action {
 }
 
 func (this *Action) Trigger(event any, params ...any) {
+    this.mu.RLock()
+    defer this.mu.RUnlock()
+
     eventName := formatName(event)
 
     listeners := this.listener[eventName]
@@ -64,6 +67,6 @@ func (this *Action) Trigger(event any, params ...any) {
     this.listenerSort(listeners, "desc")
 
     for _, listener := range listeners {
-        this.Dispatch(listener.Listener, params)
+        this.dispatch(listener.Listener, params)
     }
 }

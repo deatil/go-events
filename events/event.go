@@ -2,6 +2,7 @@ package events
 
 import (
     "sort"
+    "sync"
     "strings"
     "reflect"
 )
@@ -33,6 +34,7 @@ type Listener struct {
 }
 
 type Event struct {
+    mu       sync.RWMutex
     listener map[string][]Listener
     pool     *Pool
 }
@@ -71,6 +73,9 @@ func (this *Event) Observe(observer any, prefix string, sort int) *Event {
 
 // 注册事件监听
 func (this *Event) Listen(event any, listener any, sort int) {
+    this.mu.Lock()
+    defer this.mu.Unlock()
+
     eventName := formatName(event)
 
     if _, ok := this.listener[eventName]; !ok {
@@ -86,6 +91,9 @@ func (this *Event) Listen(event any, listener any, sort int) {
 
 // 移除监听事件
 func (this *Event) RemoveListener(event string, listener any, sort int) bool {
+    this.mu.Lock()
+    defer this.mu.Unlock()
+
     key := formatName(listener)
 
     _, exists := this.listener[event]
@@ -105,6 +113,9 @@ func (this *Event) HasListener(event string, listener any) bool {
     if listener == nil {
         return this.HasListeners()
     }
+
+    this.mu.RLock()
+    defer this.mu.RUnlock()
 
     if _, exists := this.listener[event]; !exists {
         return false
@@ -126,6 +137,9 @@ func (this *Event) HasListener(event string, listener any) bool {
 
 // 是否有事件监听
 func (this *Event) HasListeners() bool {
+    this.mu.RLock()
+    defer this.mu.RUnlock()
+
     for _, listener := range this.listener {
         if len(listener) > 0 {
             return true
@@ -137,11 +151,17 @@ func (this *Event) HasListeners() bool {
 
 // 获取所有事件监听
 func (this *Event) GetListeners() map[string][]Listener {
+    this.mu.RLock()
+    defer this.mu.RUnlock()
+
     return this.listener
 }
 
 // 是否存在事件监听点
 func (this *Event) Exists(event string) bool {
+    this.mu.RLock()
+    defer this.mu.RUnlock()
+
     if _, exists := this.listener[event]; exists {
         return true
     }
@@ -151,16 +171,22 @@ func (this *Event) Exists(event string) bool {
 
 // 移除事件监听点
 func (this *Event) Remove(event string) {
+    this.mu.Lock()
+    defer this.mu.Unlock()
+
     delete(this.listener, event)
 }
 
 // 清空
 func (this *Event) Clear() {
+    this.mu.Lock()
+    defer this.mu.Unlock()
+
     this.listener = make(map[string][]Listener)
 }
 
 // 执行事件调度
-func (this *Event) Dispatch(event any, params []any) any {
+func (this *Event) dispatch(event any, params []any) any {
     if this.pool.IsFunc(event) {
         return this.pool.CallFunc(event, params)
     } else if eventMethod, ok := event.(EventSubscribe); ok {

@@ -45,6 +45,9 @@ func (this *Filter) Subscribe(subscribers ...any) *Filter {
 }
 
 func (this *Filter) Trigger(event any, value any, params ...any) any {
+    this.mu.RLock()
+    defer this.mu.RUnlock()
+
     eventName := formatName(event)
     if this.pool.IsStruct(event) {
         value = event
@@ -71,7 +74,7 @@ func (this *Filter) Trigger(event any, value any, params ...any) any {
     for _, listener := range listeners {
         tmp = append([]any{result}, tmp...)
 
-        result = this.Dispatch(listener.Listener, tmp)
+        result = this.dispatch(listener.Listener, tmp)
         tmp = params
     }
 
