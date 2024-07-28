@@ -21,7 +21,7 @@ func NewPool() *Pool {
 func (this *Pool) CallFunc(fn any, args []any) any {
     val := reflect.ValueOf(fn)
     if val.Kind() != reflect.Func {
-        panic("go-events: call func type error")
+        panic("go-events: func type error")
     }
 
     return this.Call(val, args)
@@ -30,7 +30,6 @@ func (this *Pool) CallFunc(fn any, args []any) any {
 // listen struct
 func (this *Pool) CallStructMethod(in any, method string, args []any) any {
     val := reflect.ValueOf(in)
-
     if val.Kind() != reflect.Pointer && val.Kind() != reflect.Struct {
         panic("go-events: struct type error")
     }
@@ -41,12 +40,49 @@ func (this *Pool) CallStructMethod(in any, method string, args []any) any {
 
 // Call Func
 func (this *Pool) Call(fn reflect.Value, args []any) any {
-    if !fn.IsValid() {
+    if fn.Kind() != reflect.Func {
         panic("go-events: call func type error")
+    }
+
+    if !fn.IsValid() {
+        panic("go-events: call func valid error")
     }
 
     fnType := fn.Type()
 
+    // 参数
+    params := this.bindParams(fnType, args)
+
+    res := fn.Call(params)
+    if len(res) == 0 {
+        return nil
+    }
+
+    return res[0].Interface()
+}
+
+// is Struct
+func (this *Pool) IsStruct(in any) bool {
+    val := reflect.ValueOf(in)
+    if val.Kind() == reflect.Pointer || val.Kind() == reflect.Struct {
+        return true
+    }
+
+    return false
+}
+
+// is Func
+func (this *Pool) IsFunc(in any) bool {
+    val := reflect.ValueOf(in)
+    if val.Kind() == reflect.Func {
+        return true
+    }
+
+    return false
+}
+
+// bind params
+func (this *Pool) bindParams(fnType reflect.Type, args []any) []reflect.Value {
     numIn := fnType.NumIn()
     if len(args) != numIn {
         err := fmt.Sprintf("go-events: func params error (args %d, func args %d)", len(args), numIn)
@@ -60,32 +96,7 @@ func (this *Pool) Call(fn reflect.Value, args []any) any {
         params = append(params, dataValue)
     }
 
-    res := fn.Call(params)
-    if len(res) == 0 {
-        return nil
-    }
-
-    return res[0].Interface()
-}
-
-// is Struct
-func (this *Pool) IsStruct(in any) bool {
-    typ := reflect.ValueOf(in)
-    if typ.Kind() != reflect.Pointer && typ.Kind() != reflect.Struct {
-        return false
-    }
-
-    return true
-}
-
-// is Func
-func (this *Pool) IsFunc(in any) bool {
-    fnObject := reflect.ValueOf(in)
-    if !(fnObject.IsValid() && fnObject.Kind() == reflect.Func) {
-        return false
-    }
-
-    return true
+    return params
 }
 
 // src convert type to new typ

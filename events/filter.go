@@ -40,6 +40,7 @@ func (this *Filter) Subscribe(subscribers ...any) *Filter {
     return this
 }
 
+// Trigger func
 func (this *Filter) Trigger(event any, params ...any) any {
     this.mu.RLock()
     defer this.mu.RUnlock()

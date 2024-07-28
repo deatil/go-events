@@ -1,6 +1,7 @@
 package events
 
 import (
+    "fmt"
     "reflect"
     "testing"
 )
@@ -440,4 +441,42 @@ func Test_ReflectValue(t *testing.T) {
     action.Trigger("Test_ReflectValue", data1)
 
     eq(testEventRes["testReflectValueFunc"], "init6", "Test_ReflectValue")
+}
+
+func Test_Struct_fail(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    defer func() {
+        if e := recover(); e != nil {
+            err := fmt.Sprintf("%v", e)
+
+            check := "go-events: struct type error"
+            eq(err, check, "Struct failed")
+        }
+    }()
+
+    action := NewAction()
+    action.Listen("Test_Struct_fail", "testReflectValueFunc", DefaultSort)
+
+    data1 := "init6"
+    action.Trigger("Test_Struct_fail", data1)
+}
+
+func Test_Struct_fail_2(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    defer func() {
+        if e := recover(); e != nil {
+            err := fmt.Sprintf("%v", e)
+
+            check := "go-events: call func type error"
+            eq(err, check, "Struct failed 2")
+        }
+    }()
+
+    action := NewAction()
+    action.Listen("Test_Struct_fail_2", reflect.ValueOf("testReflectValueFunc"), DefaultSort)
+
+    data1 := "init6"
+    action.Trigger("Test_Struct_fail_2", data1)
 }
