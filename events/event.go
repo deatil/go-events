@@ -194,15 +194,19 @@ func (this *Event) Clear() {
 // 执行事件调度
 // dispatch event listeners
 func (this *Event) dispatch(event any, params []any) any {
-    if this.pool.IsFunc(event) {
-        return this.pool.CallFunc(event, params)
-    } else if eventMethod, ok := event.(reflect.Value); ok {
-        return this.pool.Call(eventMethod, params)
-    } else {
-        method := "Handle"
+    var call any
 
-        return this.pool.CallStructMethod(event, method, params)
+    if _, ok := event.([]any); ok {
+        call = event
+    } else if this.pool.IsFunc(event) {
+        call = event
+    } else if _, ok := event.(reflect.Value); ok {
+        call = event
+    } else {
+        call = []any{event, "Handle"}
     }
+
+    return this.pool.Call(call, params)
 }
 
 // 排序

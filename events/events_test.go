@@ -456,7 +456,7 @@ func Test_Struct_fail_2(t *testing.T) {
         if e := recover(); e != nil {
             err := fmt.Sprintf("%v", e)
 
-            check := "go-events: call func type error"
+            check := "go-events: struct type error"
             eq(err, check, "Struct failed 2")
         }
     }()
@@ -571,3 +571,207 @@ func Test_FilterSort(t *testing.T) {
     check := "init => run test33 => run test55 => run test22 => "
     eq(test3, check, "Test_FilterStar")
 }
+
+type TestEventStructHandleAny struct{}
+
+func (this *TestEventStructHandleAny) Handlerrr(data string) string {
+    return "run " + data
+}
+
+func Test_Filter_Any(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    {
+        filter := NewFilter()
+        filter.Listen("Test_Filter_Any", []any{
+            &TestEventStructHandleAny{},
+            "Handlerrr",
+        }, DefaultSort)
+
+        init := "init6 => "
+        res := filter.Trigger("Test_Filter_Any", init)
+
+        eq(res, "run init6 => ", "Test_Filter_Any")
+    }
+
+    {
+        filter := NewFilter()
+        filter.Listen("Test_Filter_Any", []any{
+            reflect.ValueOf(&TestEventStructHandleAny{}),
+            "Handlerrr",
+        }, DefaultSort)
+
+        init := "init7 => "
+        res := filter.Trigger("Test_Filter_Any", init)
+
+        eq(res, "run init7 => ", "Test_Filter_Any 2")
+    }
+}
+
+type TestEventActionHandleAny struct{}
+
+func (this *TestEventActionHandleAny) Handlelll(data string) {
+    testEventRes["TestEventActionHandleAny"] = data
+}
+
+func Test_Action_Any(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    {
+        action := NewAction()
+        action.Listen("Test_Action_Any", []any{
+            &TestEventActionHandleAny{},
+            "Handlelll",
+        }, DefaultSort)
+
+        init := "init8 => "
+        action.Trigger("Test_Action_Any", init)
+
+        eq(testEventRes["TestEventActionHandleAny"], "init8 => ", "Test_Action_Any")
+    }
+
+    {
+        testEventRes["TestEventActionHandleAny"] = ""
+
+        action := NewAction()
+        action.Listen("Test_Action_Any", []any{
+            reflect.ValueOf(&TestEventActionHandleAny{}),
+            "Handlelll",
+        }, DefaultSort)
+
+        init := "init9 => "
+        action.Trigger("Test_Action_Any", init)
+
+        eq(testEventRes["TestEventActionHandleAny"], "init9 => ", "Test_Action_Any 2")
+    }
+}
+
+func testFilterAnyFunc(data string) string {
+    return "run " + data
+}
+
+func Test_FilterFunc_Any(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    {
+        filter := NewFilter()
+        filter.Listen("Test_Filter_Any", []any{
+            testFilterAnyFunc,
+        }, DefaultSort)
+
+        init := "init6 => "
+        res := filter.Trigger("Test_Filter_Any", init)
+
+        eq(res, "run init6 => ", "Test_Filter_Any")
+    }
+
+    {
+        filter := NewFilter()
+        filter.Listen("Test_Filter_Any", []any{
+            reflect.ValueOf(testFilterAnyFunc),
+        }, DefaultSort)
+
+        init := "init7 => "
+        res := filter.Trigger("Test_Filter_Any", init)
+
+        eq(res, "run init7 => ", "Test_Filter_Any 2")
+    }
+}
+
+func testActionAnyFunc(val string) {
+    testEventRes["testActionAnyFunc"] = val
+}
+
+func Test_ActionFunc_Any(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    {
+        action := NewAction()
+        action.Listen("Test_Action_Any", []any{
+            testActionAnyFunc,
+        }, DefaultSort)
+
+        init := "init8 => "
+        action.Trigger("Test_Action_Any", init)
+
+        eq(testEventRes["testActionAnyFunc"], "init8 => ", "Test_Action_Any")
+    }
+
+    {
+        testEventRes["testActionAnyFunc"] = ""
+
+        action := NewAction()
+        action.Listen("Test_Action_Any", []any{
+            reflect.ValueOf(testActionAnyFunc),
+        }, DefaultSort)
+
+        init := "init9 => "
+        action.Trigger("Test_Action_Any", init)
+
+        eq(testEventRes["testActionAnyFunc"], "init9 => ", "Test_Action_Any 2")
+    }
+}
+
+func Test_Struct_fail_3(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    defer func() {
+        if e := recover(); e != nil {
+            err := fmt.Sprintf("%v", e)
+
+            check := "go-events: call slice func error"
+            eq(err, check, "Struct failed 3")
+        }
+    }()
+
+    action := NewAction()
+    action.Listen("Test_Struct_fail_3", []any{}, DefaultSort)
+
+    data1 := "init6"
+    action.Trigger("Test_Struct_fail_3", data1)
+}
+
+func Test_Struct_fail_33(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    defer func() {
+        if e := recover(); e != nil {
+            err := fmt.Sprintf("%v", e)
+
+            check := "go-events: call func type error"
+            eq(err, check, "Struct failed 32")
+        }
+    }()
+
+    action := NewAction()
+    action.Listen("Test_Struct_fail_32", []any{
+        &TestEventActionHandleAny{},
+        123,
+    }, DefaultSort)
+
+    data1 := "init6"
+    action.Trigger("Test_Struct_fail_32", data1)
+}
+
+func Test_Struct_fail_5(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    defer func() {
+        if e := recover(); e != nil {
+            err := fmt.Sprintf("%v", e)
+
+            check := "go-events: call func type error"
+            eq(err, check, "Struct failed 5")
+        }
+    }()
+
+    action := NewAction()
+    action.Listen("Test_Struct_fail_5", []any{
+        &TestEventActionHandleAny{},
+        "Test",
+    }, DefaultSort)
+
+    data1 := "init6"
+    action.Trigger("Test_Struct_fail_5", data1)
+}
+

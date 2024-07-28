@@ -18,47 +18,71 @@ func NewPool() *Pool {
 }
 
 // Call Func
+func (this *Pool) Call(fn any, args []any) any {
+    switch in := fn.(type) {
+        case []any:
+            if len(in) > 1 {
+                method := ""
+                if methodName, ok := in[1].(string); ok {
+                    method = methodName
+                }
+
+                return this.call(in[0], method, args)
+            } else if len(in) == 1 {
+                return this.call(in[0], "", args)
+            }
+
+            panic("go-events: call slice func error")
+        default:
+            return this.call(in, "", args)
+    }
+}
+
+func (this *Pool) call(event any, method string, params []any) any {
+    if eventMethod, ok := event.(reflect.Value); ok {
+        if eventMethod.Kind() == reflect.Func {
+            return this.CallFunc(eventMethod, params)
+        }
+
+        return this.CallStructMethod(eventMethod, method, params)
+    } else if this.IsFunc(event) {
+        return this.CallFunc(event, params)
+    } else {
+        return this.CallStructMethod(event, method, params)
+    }
+}
+
+// Call Func
 func (this *Pool) CallFunc(fn any, args []any) any {
-    val := reflect.ValueOf(fn)
+    var val reflect.Value
+    if fnVal, ok := fn.(reflect.Value); ok {
+        val = fnVal
+    } else {
+        val = reflect.ValueOf(fn)
+    }
+
     if val.Kind() != reflect.Func {
         panic("go-events: func type error")
     }
 
-    return this.Call(val, args)
+    return this.baseCall(val, args)
 }
 
 // listen struct
 func (this *Pool) CallStructMethod(in any, method string, args []any) any {
-    val := reflect.ValueOf(in)
+    var val reflect.Value
+    if fnVal, ok := in.(reflect.Value); ok {
+        val = fnVal
+    } else {
+        val = reflect.ValueOf(in)
+    }
+
     if val.Kind() != reflect.Pointer && val.Kind() != reflect.Struct {
         panic("go-events: struct type error")
     }
 
     newMethod := val.MethodByName(method)
-    return this.Call(newMethod, args)
-}
-
-// Call Func
-func (this *Pool) Call(fn reflect.Value, args []any) any {
-    if fn.Kind() != reflect.Func {
-        panic("go-events: call func type error")
-    }
-
-    if !fn.IsValid() {
-        panic("go-events: call func valid error")
-    }
-
-    fnType := fn.Type()
-
-    // 参数
-    params := this.bindParams(fnType, args)
-
-    res := fn.Call(params)
-    if len(res) == 0 {
-        return nil
-    }
-
-    return res[0].Interface()
+    return this.baseCall(newMethod, args)
 }
 
 // is Struct
@@ -79,6 +103,29 @@ func (this *Pool) IsFunc(in any) bool {
     }
 
     return false
+}
+
+// base Call Func
+func (this *Pool) baseCall(fn reflect.Value, args []any) any {
+    if fn.Kind() != reflect.Func {
+        panic("go-events: call func type error")
+    }
+
+    if !fn.IsValid() {
+        panic("go-events: call func valid error")
+    }
+
+    fnType := fn.Type()
+
+    // 参数
+    params := this.bindParams(fnType, args)
+
+    res := fn.Call(params)
+    if len(res) == 0 {
+        return nil
+    }
+
+    return res[0].Interface()
 }
 
 // bind params
