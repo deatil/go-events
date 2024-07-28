@@ -192,6 +192,18 @@ func Test_EventSubscribe(t *testing.T) {
     res := filter.Trigger("TestEventSubscribeFilter", data2)
 
     eq(res, "TestEventSubscribeFilter => init7-88888", "TestEventSubscribeFilter")
+
+    // =========
+
+    {
+        filter := NewFilter()
+        filter.Subscribe()
+
+        data2 := "init7-88888"
+        res := filter.Trigger("TestEventSubscribeFilter", data2)
+
+        eq(res, "init7-88888", "TestEventSubscribeFilter 2")
+    }
 }
 
 func Test_Events(t *testing.T) {
@@ -261,6 +273,7 @@ func Test_EventPrefix(t *testing.T) {
 
     action := NewAction()
     action.Subscribe(TestEventPrefix{})
+    action.Subscribe()
 
     data1 := "init77"
     action.Trigger("ABCTestEvent", data1)
@@ -334,32 +347,6 @@ func Test_EventPrefixAndSort(t *testing.T) {
     action.Trigger("ABCTestEvent")
 
     eq(TestEventPrefixData, "2222222333333", "Test_EventPrefixAndSort")
-}
-
-func Test_EventStar(t *testing.T) {
-    eq := assertDeepEqualT(t)
-
-    action := NewAction()
-
-    test3 := ""
-    listener3 := func() {
-        test3 += "run test3 => "
-    }
-    listener33 := func() {
-        test3 += "run test33 => "
-    }
-    listener5 := func() {
-        test3 += "run test5 => "
-    }
-
-    action.Listen("test3.a", listener3, 1)
-    action.Listen("test3.b", listener33, 6)
-    action.Listen("test3.c", listener5, 5)
-
-    action.Trigger("test3.*")
-
-    check := "run test33 => run test5 => run test3 => "
-    eq(test3, check, "Test_EventStar")
 }
 
 type TestEventStructData struct {}
@@ -479,4 +466,56 @@ func Test_Struct_fail_2(t *testing.T) {
 
     data1 := "init6"
     action.Trigger("Test_Struct_fail_2", data1)
+}
+
+func Test_ActionStar(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    action := NewAction()
+
+    test3 := ""
+    listener3 := func() {
+        test3 += "run test3 => "
+    }
+    listener33 := func() {
+        test3 += "run test33 => "
+    }
+    listener5 := func() {
+        test3 += "run test5 => "
+    }
+
+    action.Listen("test3.a", listener3, 1)
+    action.Listen("test3.b", listener33, 6)
+    action.Listen("test3.c", listener5, 5)
+
+    action.Trigger("test3.*")
+
+    check := "run test33 => run test5 => run test3 => "
+    eq(test3, check, "Test_ActionStar")
+}
+
+func Test_FilterStar(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    filter := NewFilter()
+
+    listener3 := func(val string) string {
+        return val + "run test3 => "
+    }
+    listener33 := func(val string) string {
+        return val + "run test33 => "
+    }
+    listener5 := func(val string) string {
+        return val + "run test5 => "
+    }
+
+    filter.Listen("test3.a", listener3, 1)
+    filter.Listen("test3.b", listener33, 6)
+    filter.Listen("test3.c", listener5, 5)
+
+    init := "init => "
+    test3 := filter.Trigger("test3.*", init)
+
+    check := "init => run test33 => run test5 => run test3 => "
+    eq(test3, check, "Test_FilterStar")
 }
