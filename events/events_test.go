@@ -519,3 +519,55 @@ func Test_FilterStar(t *testing.T) {
     check := "init => run test33 => run test5 => run test3 => "
     eq(test3, check, "Test_FilterStar")
 }
+
+func Test_ActionSort(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    action := NewAction()
+
+    test3 := ""
+    listener3 := func() {
+        test3 += "run test3 => "
+    }
+    listener33 := func() {
+        test3 += "run test33 => "
+    }
+    listener5 := func() {
+        test3 += "run test5 => "
+    }
+
+    action.Listen("Test_ActionSort", listener3, 1)
+    action.Listen("Test_ActionSort", listener33, 6)
+    action.Listen("Test_ActionSort", listener5, 5)
+
+    action.Trigger("Test_ActionSort")
+
+    check := "run test33 => run test5 => run test3 => "
+    eq(test3, check, "Test_ActionStar")
+}
+
+func Test_FilterSort(t *testing.T) {
+    eq := assertDeepEqualT(t)
+
+    filter := NewFilter()
+
+    listener3 := func(val string) string {
+        return val + "run test22 => "
+    }
+    listener33 := func(val string) string {
+        return val + "run test33 => "
+    }
+    listener5 := func(val string) string {
+        return val + "run test55 => "
+    }
+
+    filter.Listen("Test_FilterSort", listener3, 1)
+    filter.Listen("Test_FilterSort", listener33, 6)
+    filter.Listen("Test_FilterSort", listener5, 5)
+
+    init := "init => "
+    test3 := filter.Trigger("Test_FilterSort", init)
+
+    check := "init => run test33 => run test55 => run test22 => "
+    eq(test3, check, "Test_FilterStar")
+}
