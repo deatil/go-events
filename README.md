@@ -9,7 +9,7 @@
 
 ### Desc
 
-*  go-events is a go event or event'subscribe pkg.
+*  go-events is a go event and event'subscribe pkg, like wordpress hook functions.
 
 [中文](README_CN.md) | English
 
