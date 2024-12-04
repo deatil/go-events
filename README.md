@@ -5,6 +5,8 @@
 <a href="https://app.codecov.io/gh/deatil/go-events" target="_blank"><img src="https://codecov.io/gh/deatil/go-events/graph/badge.svg?token=SS2Z1IY0XL"/></a>
 <a href="https://goreportcard.com/report/github.com/deatil/go-events" target="_blank"><img src="https://goreportcard.com/badge/github.com/deatil/go-events" /></a>
 </p>
+<a href="https://github.com/avelino/awesome-go"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go"></a>
+</p>
 
 
 ### Desc
