@@ -17,7 +17,7 @@
 
 ### 下载安装
 
-~~~go
+~~~cmd
 go get -u github.com/deatil/go-events
 ~~~
 

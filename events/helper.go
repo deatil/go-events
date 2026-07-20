@@ -12,8 +12,13 @@ func Default() *Events {
 
 // 注册操作
 // Add Action
-func AddAction(event any, listener any, sort int) {
-	defaultEvent.Action().Listen(event, listener, sort)
+func AddAction(event any, listener any, sort ...int) {
+	useSort := DefaultSort
+	if len(sort) > 0 {
+		useSort = sort[0]
+	}
+
+	defaultEvent.Action().Listen(event, listener, useSort)
 }
 
 // 触发操作
@@ -24,8 +29,13 @@ func DoAction(event any, params ...any) {
 
 // 移除操作
 // Remove Action
-func RemoveAction(event string, listener any, sort int) bool {
-	return defaultEvent.Action().RemoveListener(event, listener, sort)
+func RemoveAction(event string, listener any, sort ...int) bool {
+	useSort := DefaultSort
+	if len(sort) > 0 {
+		useSort = sort[0]
+	}
+
+	return defaultEvent.Action().RemoveListener(event, listener, useSort)
 }
 
 // 是否有操作
@@ -36,8 +46,13 @@ func HasAction(event string, listener any) bool {
 
 // 注册过滤器
 // Add Filter
-func AddFilter(event any, listener any, sort int) {
-	defaultEvent.Filter().Listen(event, listener, sort)
+func AddFilter(event any, listener any, sort ...int) {
+	useSort := DefaultSort
+	if len(sort) > 0 {
+		useSort = sort[0]
+	}
+
+	defaultEvent.Filter().Listen(event, listener, useSort)
 }
 
 // 触发过滤器
@@ -48,8 +63,13 @@ func ApplyFilters(event any, params ...any) any {
 
 // 移除过滤器
 // Remove Filter
-func RemoveFilter(event string, listener any, sort int) bool {
-	return defaultEvent.Filter().RemoveListener(event, listener, sort)
+func RemoveFilter(event string, listener any, sort ...int) bool {
+	useSort := DefaultSort
+	if len(sort) > 0 {
+		useSort = sort[0]
+	}
+
+	return defaultEvent.Filter().RemoveListener(event, listener, useSort)
 }
 
 // 是否有过滤器
