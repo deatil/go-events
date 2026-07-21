@@ -17,7 +17,7 @@ func NewPool() *Pool {
 	return &Pool{}
 }
 
-// Call Func
+// Call Func or struct
 func (this *Pool) Call(fn any, args []any) any {
 	switch in := fn.(type) {
 	case []any:

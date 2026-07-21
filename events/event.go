@@ -19,6 +19,24 @@ type ISubscribeSort interface {
 	EventSort() int
 }
 
+// Pool Interface
+type IPool interface {
+	// Call Func or struct
+	Call(fn any, args []any) any
+
+	// Call Func
+	CallFunc(fn any, args []any) any
+
+	// Call struct method
+	CallStructMethod(class any, method string, args []any) any
+
+	// is Struct
+	IsStruct(in any) bool
+
+	// is Func
+	IsFunc(in any) bool
+}
+
 // 监听器数据
 // Listener data
 type Listener struct {
@@ -31,7 +49,7 @@ type Listener struct {
 type Event struct {
 	mu       sync.RWMutex
 	listener map[string][]Listener
-	pool     *Pool
+	pool     IPool
 }
 
 // 自动注册事件观察者 / add observer
